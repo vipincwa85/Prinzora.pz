@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prinzora Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+      <div id="tab-design" class="tab-content hidden space-y-6">
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-2">Design & Appearance</h2>
+          <p class="text-sm text-gray-500 mb-5">Change colours and button labels from the panel.</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="block text-xs text-gray-400 mb-1">Primary Colour</label><input type="color" id="design_primary" class="h-12 p-1"></div>
+            <div><label class="block text-xs text-gray-400 mb-1">Accent Colour</label><input type="color" id="design_accent" class="h-12 p-1"></div>
+            <div><label class="block text-xs text-gray-400 mb-1">Background Colour</label><input type="color" id="design_background" class="h-12 p-1"></div>
+            <div><label class="block text-xs text-gray-400 mb-1">Card Colour</label><input type="color" id="design_card" class="h-12 p-1"></div>
+            <div><label class="block text-xs text-gray-400 mb-1">Main Button Text</label><input id="design_buttonText"></div>
+            <div><label class="block text-xs text-gray-400 mb-1">Events Button Text</label><input id="design_eventsButton"></div>
+          </div>
+          <div class="flex flex-wrap gap-3 mt-6">
+            <button onclick="saveDesign()" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium">Save Design</button>
+            <button onclick="resetAllContent()" class="px-5 py-2.5 rounded-xl border border-red-500/30 text-red-400 hover:text-red-300">Remove All Content & Images</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: { 900:'#0a0a0f', 800:'#0f0f17', 700:'#15151f', 600:'#1a1a28' },
+            purple: { 400:'#a78bfa', 500:'#8b5cf6', 600:'#7c3aed' },
+            gold: { 400:'#fbbf24', 500:'#f59e0b' }
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background:#0a0a0f; color:#e2e8f0; }
+    .tab-btn.active { background: rgba(139,92,246,.2); color: #a78bfa; border-color: rgba(139,92,246,.4); }
+    input, textarea, select {
+      background: #0f0f17; border: 1px solid rgba(255,255,255,.1); color: #fff;
+      border-radius: .75rem; padding: .75rem 1rem; width: 100%;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #8b5cf6; }
+    .file-preview { max-height: 120px; border-radius: .5rem; object-fit: cover; }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen">
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-gold-400 to-gold-500 flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-dark-900" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9 8H3L8 12L6 18L12 14L18 18L16 12L21 8H15L12 2Z"/></svg>
+        </div>
+        <h1 class="text-2xl font-bold text-white">Prinzora Admin</h1>
+        <p class="text-gray-400 text-sm mt-1">Sign in to manage your site</p>
+      </div>
+      <form id="loginForm" class="bg-dark-800 border border-white/10 rounded-2xl p-8 space-y-5">
+        <div>
+          <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Username</label>
+          <input type="text" id="loginUser" required placeholder="Username" autocomplete="username">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Password</label>
+          <input type="password" id="loginPass" required placeholder="Password" autocomplete="current-password">
+        </div>
+        <p id="loginError" class="text-red-400 text-sm hidden">Invalid username or password</p>
+        <button type="submit" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium transition">
+          Login
+        </button>
+        <a href="index.html" class="block text-center text-sm text-gray-400 hover:text-white mt-2">← Back to website</a>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="adminPanel" class="hidden min-h-screen">
+    <!-- Top bar -->
+    <header class="sticky top-0 z-40 bg-dark-900/90 backdrop-blur border-b border-white/5 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-500 flex items-center justify-center">
+          <svg class="w-5 h-5 text-dark-900" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9 8H3L8 12L6 18L12 14L18 18L16 12L21 8H15L12 2Z"/></svg>
+        </div>
+        <span class="font-bold text-white">Admin Panel</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="index.html" target="_blank" class="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-lg border border-white/10">View Site</a>
+        <button id="logoutBtn" class="text-sm text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg border border-red-500/30">Logout</button>
+      </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      <!-- Tabs -->
+      <div class="flex flex-wrap gap-2 mb-8">
+        <button class="tab-btn active px-4 py-2 rounded-lg border border-white/10 text-sm font-medium" data-tab="settings">Settings</button>
+        <button class="tab-btn px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-gray-400" data-tab="events">Events</button>
+        <button class="tab-btn px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-gray-400" data-tab="members">Members</button>
+        <button class="tab-btn px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-gray-400" data-tab="blog">Blog</button>
+        <button class="tab-btn px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-gray-400" data-tab="gallery">Gallery</button>
+        <button class="tab-btn px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-gray-400" data-tab="design">Design</button>
+      </div>
+
+      <!-- ========== SETTINGS TAB ========== -->
+      <div id="tab-settings" class="tab-content space-y-6">
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Site Settings</h2>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Site Name</label>
+              <input type="text" id="set_siteName" placeholder="PRINZORA">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Hero Title</label>
+              <input type="text" id="set_heroTitle" placeholder="PRINZORA">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-gray-400 mb-1">Hero Tagline</label>
+              <textarea id="set_heroTagline" rows="2"></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-gray-400 mb-1">About Text 1</label>
+              <textarea id="set_aboutText1" rows="3"></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-gray-400 mb-1">About Text 2</label>
+              <textarea id="set_aboutText2" rows="3"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Members Count</label>
+              <input type="text" id="set_statMembers" placeholder="500+">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Events / Year</label>
+              <input type="text" id="set_statEvents" placeholder="12">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Years Active</label>
+              <input type="text" id="set_statYears" placeholder="5+">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Satisfaction %</label>
+              <input type="text" id="set_satisfaction" placeholder="98">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Contact Email</label>
+              <input type="email" id="set_contactEmail">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Location</label>
+              <input type="text" id="set_contactLocation">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Response Time</label>
+              <input type="text" id="set_contactResponse">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Copyright Text</label>
+              <input type="text" id="set_copyright">
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-white/10 pt-6">
+            <h3 class="text-sm font-semibold text-white mb-4">Section & Contact Content</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div><label class="block text-xs text-gray-400 mb-1">Hero Badge</label><input id="set_heroBadge"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">About Label</label><input id="set_aboutLabel"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">About Heading</label><input id="set_aboutHeading"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">About Button</label><input id="set_aboutButton"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Events Label</label><input id="set_eventsLabel"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Events Heading</label><input id="set_eventsHeading"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Gallery Label</label><input id="set_galleryLabel"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Gallery Heading</label><input id="set_galleryHeading"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Members Label</label><input id="set_membersLabel"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Members Heading</label><input id="set_membersHeading"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Blog Label</label><input id="set_blogLabel"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Blog Heading</label><input id="set_blogHeading"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Contact Label</label><input id="set_contactLabel"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Contact Heading</label><input id="set_contactHeading"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Email Label</label><input id="set_emailLabel"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Location Label</label><input id="set_locationLabel"></div>
+              <div><label class="block text-xs text-gray-400 mb-1">Response Label</label><input id="set_responseLabel"></div>
+              <div class="md:col-span-2"><label class="block text-xs text-gray-400 mb-1">Contact Description</label><textarea id="set_contactDescription" rows="2"></textarea></div>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6 mt-6">
+            <div>
+              <label class="block text-xs text-gray-400 mb-2">Logo (upload image)</label>
+              <input type="file" id="set_logo" accept="image/*" class="text-sm">
+              <div id="logoPreview" class="mt-2"></div>
+              <button type="button" onclick="clearLogo()" class="mt-2 text-xs text-red-400 hover:text-red-300">Remove logo</button>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-2">About Section Image</label>
+              <input type="file" id="set_aboutImage" accept="image/*" class="text-sm">
+              <div id="aboutPreview" class="mt-2"></div>
+              <button type="button" onclick="clearAboutImage()" class="mt-2 text-xs text-red-400 hover:text-red-300">Remove image</button>
+            </div>
+          </div>
+
+          <button onclick="saveSettings()" class="mt-6 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium">Save Settings</button>
+        </div>
+      </div>
+
+      <!-- ========== EVENTS TAB ========== -->
+      <div id="tab-events" class="tab-content hidden space-y-6">
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Add / Edit Event</h2>
+          <input type="hidden" id="ev_id">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Title</label>
+              <input type="text" id="ev_title" placeholder="Event title">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Tag (e.g. Gala, Workshop)</label>
+              <input type="text" id="ev_tag" placeholder="Gala">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Date & Time</label>
+              <input type="text" id="ev_date" placeholder="Sep 15, 2026 · 7:00 PM">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Location</label>
+              <input type="text" id="ev_location" placeholder="Grand Ballroom, New York">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-gray-400 mb-1">Image</label>
+              <input type="file" id="ev_image" accept="image/*" class="text-sm">
+              <div id="evImagePreview" class="mt-2"></div>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-4">
+            <button onclick="saveEvent()" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium">Save Event</button>
+            <button onclick="resetEventForm()" class="px-4 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white">Clear</button>
+          </div>
+        </div>
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Existing Events</h2>
+          <div id="eventsList" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <!-- ========== MEMBERS TAB ========== -->
+      <div id="tab-members" class="tab-content hidden space-y-6">
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Add / Edit Member</h2>
+          <input type="hidden" id="mem_id">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Name</label>
+              <input type="text" id="mem_name" placeholder="Full name">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Role</label>
+              <input type="text" id="mem_role" placeholder="Chapter President">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-gray-400 mb-1">Photo</label>
+              <input type="file" id="mem_photo" accept="image/*" class="text-sm">
+              <div id="memPhotoPreview" class="mt-2"></div>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-4">
+            <button onclick="saveMember()" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium">Save Member</button>
+            <button onclick="resetMemberForm()" class="px-4 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white">Clear</button>
+          </div>
+        </div>
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Team Members</h2>
+          <div id="membersList" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <!-- ========== BLOG TAB ========== -->
+      <div id="tab-blog" class="tab-content hidden space-y-6">
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Add / Edit Blog Post</h2>
+          <input type="hidden" id="blog_id">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Title</label>
+              <input type="text" id="blog_title" placeholder="Post title">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Category</label>
+              <input type="text" id="blog_category" placeholder="Insights">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Author</label>
+              <input type="text" id="blog_author" placeholder="Author name">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Date</label>
+              <input type="text" id="blog_date" placeholder="Jul 28, 2026">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-gray-400 mb-1">Excerpt / Content</label>
+              <textarea id="blog_excerpt" rows="4" placeholder="Post content or short description..."></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-gray-400 mb-2">Blog Image (optional)</label>
+              <input type="file" id="blog_image" accept="image/*" class="text-sm">
+              <div id="blogImagePreview" class="mt-2"></div>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-4">
+            <button onclick="saveBlog()" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium">Save Post</button>
+            <button onclick="resetBlogForm()" class="px-4 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white">Clear</button>
+          </div>
+        </div>
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Blog Posts</h2>
+          <div id="blogsList" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <!-- ========== GALLERY TAB ========== -->
+      <div id="tab-gallery" class="tab-content hidden space-y-6">
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Add Gallery Image</h2>
+          <input type="file" id="gal_image" accept="image/*" class="text-sm">
+          <div id="galPreview" class="mt-2"></div>
+          <button onclick="addGalleryImage()" class="mt-4 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium">Add Image</button>
+        </div>
+        <div class="bg-dark-800 border border-white/10 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-4">Gallery Images</h2>
+          <div id="galleryList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========== AUTH ==========
+    const ADMIN_USER = 'PRINZORA.PZ';
+    const ADMIN_PASS = 'EYWP';
+
+    function isLoggedIn() {
+      return sessionStorage.getItem('prinzora_admin') === '1';
+    }
+
+    function showLogin() {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('adminPanel').classList.add('hidden');
+    }
+
+    function showAdmin() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('adminPanel').classList.remove('hidden');
+      loadAll();
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var u = document.getElementById('loginUser').value.trim();
+      var p = document.getElementById('loginPass').value;
+      if (u === ADMIN_USER && p === ADMIN_PASS) {
+        sessionStorage.setItem('prinzora_admin', '1');
+        document.getElementById('loginError').classList.add('hidden');
+        showAdmin();
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      sessionStorage.removeItem('prinzora_admin');
+      showLogin();
+    });
+
+    if (isLoggedIn()) showAdmin();
+    else showLogin();
+
+    (function(){ if(localStorage.getItem('prinzora_cms_version')!=='2'){ var d=getData(); d.events=[];d.members=[];d.blogs=[];d.gallery=[];d.settings.logo=null;d.settings.aboutImage=null;saveData(d);localStorage.setItem('prinzora_cms_version','2'); } })();
+
+    // ========== DATA ==========
+    function getData() {
+      try {
+        var raw = localStorage.getItem('prinzora_data');
+        if (!raw) return { settings: {}, events: [], members: [], blogs: [], gallery: [] };
+        return JSON.parse(raw);
+      } catch(e) {
+        return { settings: {}, events: [], members: [], blogs: [], gallery: [] };
+      }
+    }
+
+    function saveData(data) {
+      localStorage.setItem('prinzora_data', JSON.stringify(data));
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    // File → base64
+    function fileToBase64(file) {
+      return new Promise(function(resolve, reject) {
+        if (!file) return resolve(null);
+        var reader = new FileReader();
+        reader.onload = function() { resolve(reader.result); };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ========== TABS ==========
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b) {
+          b.classList.remove('active');
+          b.classList.add('text-gray-400');
+        });
+        btn.classList.add('active');
+        btn.classList.remove('text-gray-400');
+        document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.add('hidden'); });
+        document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+      });
+    });
+
+    // ========== SETTINGS ==========
+    var pendingLogo = null;
+    var pendingAbout = null;
+
+    document.getElementById('set_logo').addEventListener('change', async function(e) {
+      pendingLogo = await fileToBase64(e.target.files[0]);
+      if (pendingLogo) {
+        document.getElementById('logoPreview').innerHTML = '<img src="' + pendingLogo + '" class="file-preview">';
+      }
+    });
+
+    document.getElementById('set_aboutImage').addEventListener('change', async function(e) {
+      pendingAbout = await fileToBase64(e.target.files[0]);
+      if (pendingAbout) {
+        document.getElementById('aboutPreview').innerHTML = '<img src="' + pendingAbout + '" class="file-preview">';
+      }
+    });
+
+    function clearLogo() {
+      pendingLogo = null;
+      var data = getData();
+      if (data.settings) data.settings.logo = null;
+      saveData(data);
+      document.getElementById('logoPreview').innerHTML = '';
+      document.getElementById('set_logo').value = '';
+    }
+
+    function clearAboutImage() {
+      pendingAbout = null;
+      var data = getData();
+      if (data.settings) data.settings.aboutImage = null;
+      saveData(data);
+      document.getElementById('aboutPreview').innerHTML = '';
+      document.getElementById('set_aboutImage').value = '';
+    }
+
+    function loadSettings() {
+      var s = getData().settings || {};
+      document.getElementById('set_siteName').value = s.siteName || '';
+      document.getElementById('set_heroTitle').value = s.heroTitle || '';
+      document.getElementById('set_heroTagline').value = s.heroTagline || '';
+      document.getElementById('set_aboutText1').value = s.aboutText1 || '';
+      document.getElementById('set_aboutText2').value = s.aboutText2 || '';
+      document.getElementById('set_statMembers').value = s.statMembers || '';
+      document.getElementById('set_statEvents').value = s.statEvents || '';
+      document.getElementById('set_statYears').value = s.statYears || '';
+      document.getElementById('set_satisfaction').value = s.satisfaction || '';
+      document.getElementById('set_contactEmail').value = s.contactEmail || '';
+      document.getElementById('set_contactLocation').value = s.contactLocation || '';
+      document.getElementById('set_contactResponse').value = s.contactResponse || '';
+      document.getElementById('set_copyright').value = s.copyright || '';
+      document.getElementById('set_heroBadge').value = s.heroBadge || '';
+      document.getElementById('set_aboutLabel').value = s.aboutLabel || '';
+      document.getElementById('set_aboutHeading').value = s.aboutHeading || '';
+      document.getElementById('set_aboutButton').value = s.aboutButton || '';
+      document.getElementById('set_eventsLabel').value = s.eventsLabel || '';
+      document.getElementById('set_eventsHeading').value = s.eventsHeading || '';
+      document.getElementById('set_galleryLabel').value = s.galleryLabel || '';
+      document.getElementById('set_galleryHeading').value = s.galleryHeading || '';
+      document.getElementById('set_membersLabel').value = s.membersLabel || '';
+      document.getElementById('set_membersHeading').value = s.membersHeading || '';
+      document.getElementById('set_blogLabel').value = s.blogLabel || '';
+      document.getElementById('set_blogHeading').value = s.blogHeading || '';
+      document.getElementById('set_contactLabel').value = s.contactLabel || '';
+      document.getElementById('set_contactHeading').value = s.contactHeading || '';
+      document.getElementById('set_emailLabel').value = s.emailLabel || '';
+      document.getElementById('set_locationLabel').value = s.locationLabel || '';
+      document.getElementById('set_responseLabel').value = s.responseLabel || '';
+      document.getElementById('set_contactDescription').value = s.contactDescription || '';
+      if (s.logo) document.getElementById('logoPreview').innerHTML = '<img src="' + s.logo + '" class="file-preview">';
+      if (s.aboutImage) document.getElementById('aboutPreview').innerHTML = '<img src="' + s.aboutImage + '" class="file-preview">';
+    }
+
+    function saveSettings() {
+      var data = getData();
+      data.settings = data.settings || {};
+      data.settings.siteName = document.getElementById('set_siteName').value;
+      data.settings.heroTitle = document.getElementById('set_heroTitle').value;
+      data.settings.heroTagline = document.getElementById('set_heroTagline').value;
+      data.settings.aboutText1 = document.getElementById('set_aboutText1').value;
+      data.settings.aboutText2 = document.getElementById('set_aboutText2').value;
+      data.settings.statMembers = document.getElementById('set_statMembers').value;
+      data.settings.statEvents = document.getElementById('set_statEvents').value;
+      data.settings.statYears = document.getElementById('set_statYears').value;
+      data.settings.satisfaction = document.getElementById('set_satisfaction').value;
+      data.settings.contactEmail = document.getElementById('set_contactEmail').value;
+      data.settings.contactLocation = document.getElementById('set_contactLocation').value;
+      data.settings.contactResponse = document.getElementById('set_contactResponse').value;
+      data.settings.copyright = document.getElementById('set_copyright').value;
+      data.settings.heroBadge = document.getElementById('set_heroBadge').value;
+      data.settings.aboutLabel = document.getElementById('set_aboutLabel').value;
+      data.settings.aboutHeading = document.getElementById('set_aboutHeading').value;
+      data.settings.aboutButton = document.getElementById('set_aboutButton').value;
+      data.settings.eventsLabel = document.getElementById('set_eventsLabel').value;
+      data.settings.eventsHeading = document.getElementById('set_eventsHeading').value;
+      data.settings.galleryLabel = document.getElementById('set_galleryLabel').value;
+      data.settings.galleryHeading = document.getElementById('set_galleryHeading').value;
+      data.settings.membersLabel = document.getElementById('set_membersLabel').value;
+      data.settings.membersHeading = document.getElementById('set_membersHeading').value;
+      data.settings.blogLabel = document.getElementById('set_blogLabel').value;
+      data.settings.blogHeading = document.getElementById('set_blogHeading').value;
+      data.settings.contactLabel = document.getElementById('set_contactLabel').value;
+      data.settings.contactHeading = document.getElementById('set_contactHeading').value;
+      data.settings.emailLabel = document.getElementById('set_emailLabel').value;
+      data.settings.locationLabel = document.getElementById('set_locationLabel').value;
+      data.settings.responseLabel = document.getElementById('set_responseLabel').value;
+      data.settings.contactDescription = document.getElementById('set_contactDescription').value;
+      if (pendingLogo !== null) data.settings.logo = pendingLogo;
+      if (pendingAbout !== null) data.settings.aboutImage = pendingAbout;
+      saveData(data);
+      pendingLogo = null;
+      pendingAbout = null;
+      alert('Settings saved! Refresh the main site to see changes.');
+    }
+
+    // ========== EVENTS ==========
+    var pendingEvImage = null;
+
+    document.getElementById('ev_image').addEventListener('change', async function(e) {
+      pendingEvImage = await fileToBase64(e.target.files[0]);
+      if (pendingEvImage) document.getElementById('evImagePreview').innerHTML = '<img src="' + pendingEvImage + '" class="file-preview">';
+    });
+
+    function resetEventForm() {
+      document.getElementById('ev_id').value = '';
+      document.getElementById('ev_title').value = '';
+      document.getElementById('ev_tag').value = '';
+      document.getElementById('ev_date').value = '';
+      document.getElementById('ev_location').value = '';
+      document.getElementById('ev_image').value = '';
+      document.getElementById('evImagePreview').innerHTML = '';
+      pendingEvImage = null;
+    }
+
+    function saveEvent() {
+      var data = getData();
+      data.events = data.events || [];
+      var id = document.getElementById('ev_id').value;
+      var item = {
+        id: id || uid(),
+        title: document.getElementById('ev_title').value,
+        tag: document.getElementById('ev_tag').value,
+        date: document.getElementById('ev_date').value,
+        location: document.getElementById('ev_location').value,
+        image: pendingEvImage
+      };
+      if (id) {
+        var idx = data.events.findIndex(function(e) { return e.id === id; });
+        if (idx >= 0) {
+          if (!item.image) item.image = data.events[idx].image;
+          data.events[idx] = item;
+        }
+      } else {
+        data.events.push(item);
+      }
+      saveData(data);
+      resetEventForm();
+      renderEventsList();
+      alert('Event saved!');
+    }
+
+    function editEvent(id) {
+      var data = getData();
+      var ev = (data.events || []).find(function(e) { return e.id === id; });
+      if (!ev) return;
+      document.getElementById('ev_id').value = ev.id;
+      document.getElementById('ev_title').value = ev.title || '';
+      document.getElementById('ev_tag').value = ev.tag || '';
+      document.getElementById('ev_date').value = ev.date || '';
+      document.getElementById('ev_location').value = ev.location || '';
+      pendingEvImage = null;
+      document.getElementById('evImagePreview').innerHTML = ev.image ? '<img src="' + ev.image + '" class="file-preview">' : '';
+    }
+
+    function deleteEvent(id) {
+      if (!confirm('Delete this event?')) return;
+      var data = getData();
+      data.events = (data.events || []).filter(function(e) { return e.id !== id; });
+      saveData(data);
+      renderEventsList();
+    }
+
+    function renderEventsList() {
+      var events = getData().events || [];
+      var el = document.getElementById('eventsList');
+      if (!events.length) {
+        el.innerHTML = '<p class="text-gray-500 text-sm">No events yet.</p>';
+        return;
+      }
+      el.innerHTML = events.map(function(ev) {
+        return '<div class="flex items-center gap-4 p-3 rounded-xl bg-dark-900 border border-white/5">' +
+          (ev.image ? '<img src="' + ev.image + '" class="w-14 h-14 rounded-lg object-cover">' : '<div class="w-14 h-14 rounded-lg bg-dark-700"></div>') +
+          '<div class="flex-1 min-w-0"><div class="font-medium text-white truncate">' + (ev.title||'Untitled') + '</div>' +
+          '<div class="text-xs text-gray-400">' + (ev.date||'') + ' · ' + (ev.location||'') + '</div></div>' +
+          '<button onclick="editEvent(\'' + ev.id + '\')" class="text-sm text-purple-400 hover:text-purple-300">Edit</button>' +
+          '<button onclick="deleteEvent(\'' + ev.id + '\')" class="text-sm text-red-400 hover:text-red-300">Delete</button></div>';
+      }).join('');
+    }
+
+    // ========== MEMBERS ==========
+    var pendingMemPhoto = null;
+
+    document.getElementById('mem_photo').addEventListener('change', async function(e) {
+      pendingMemPhoto = await fileToBase64(e.target.files[0]);
+      if (pendingMemPhoto) document.getElementById('memPhotoPreview').innerHTML = '<img src="' + pendingMemPhoto + '" class="file-preview w-20 h-20 rounded-full">';
+    });
+
+    function resetMemberForm() {
+      document.getElementById('mem_id').value = '';
+      document.getElementById('mem_name').value = '';
+      document.getElementById('mem_role').value = '';
+      document.getElementById('mem_photo').value = '';
+      document.getElementById('memPhotoPreview').innerHTML = '';
+      pendingMemPhoto = null;
+    }
+
+    function saveMember() {
+      var data = getData();
+      data.members = data.members || [];
+      var id = document.getElementById('mem_id').value;
+      var item = {
+        id: id || uid(),
+        name: document.getElementById('mem_name').value,
+        role: document.getElementById('mem_role').value,
+        photo: pendingMemPhoto
+      };
+      if (id) {
+        var idx = data.members.findIndex(function(m) { return m.id === id; });
+        if (idx >= 0) {
+          if (!item.photo) item.photo = data.members[idx].photo;
+          data.members[idx] = item;
+        }
+      } else {
+        data.members.push(item);
+      }
+      saveData(data);
+      resetMemberForm();
+      renderMembersList();
+      alert('Member saved!');
+    }
+
+    function editMember(id) {
+      var data = getData();
+      var m = (data.members || []).find(function(x) { return x.id === id; });
+      if (!m) return;
+      document.getElementById('mem_id').value = m.id;
+      document.getElementById('mem_name').value = m.name || '';
+      document.getElementById('mem_role').value = m.role || '';
+      pendingMemPhoto = null;
+      document.getElementById('memPhotoPreview').innerHTML = m.photo ? '<img src="' + m.photo + '" class="file-preview w-20 h-20 rounded-full">' : '';
+    }
+
+    function deleteMember(id) {
+      if (!confirm('Delete this member?')) return;
+      var data = getData();
+      data.members = (data.members || []).filter(function(m) { return m.id !== id; });
+      saveData(data);
+      renderMembersList();
+    }
+
+    function renderMembersList() {
+      var members = getData().members || [];
+      var el = document.getElementById('membersList');
+      if (!members.length) {
+        el.innerHTML = '<p class="text-gray-500 text-sm">No members yet.</p>';
+        return;
+      }
+      el.innerHTML = members.map(function(m) {
+        var initials = (m.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+        return '<div class="flex items-center gap-4 p-3 rounded-xl bg-dark-900 border border-white/5">' +
+          (m.photo
+            ? '<img src="' + m.photo + '" class="w-12 h-12 rounded-full object-cover">'
+            : '<div class="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-sm font-bold">' + initials + '</div>') +
+          '<div class="flex-1"><div class="font-medium text-white">' + (m.name||'') + '</div>' +
+          '<div class="text-xs text-gray-400">' + (m.role||'') + '</div></div>' +
+          '<button onclick="editMember(\'' + m.id + '\')" class="text-sm text-purple-400 hover:text-purple-300">Edit</button>' +
+          '<button onclick="deleteMember(\'' + m.id + '\')" class="text-sm text-red-400 hover:text-red-300">Delete</button></div>';
+      }).join('');
+    }
+
+    // ========== BLOG ==========
+    function resetBlogForm() {
+      document.getElementById('blog_id').value = '';
+      document.getElementById('blog_title').value = '';
+      document.getElementById('blog_category').value = '';
+      document.getElementById('blog_author').value = '';
+      document.getElementById('blog_date').value = '';
+      document.getElementById('blog_excerpt').value = '';
+      document.getElementById('blog_image').value = '';
+      document.getElementById('blogImagePreview').innerHTML = '';
+      pendingBlogImage = null;
+    }
+
+    function saveBlog() {
+      var data = getData();
+      data.blogs = data.blogs || [];
+      var id = document.getElementById('blog_id').value;
+      var item = {
+        id: id || uid(),
+        title: document.getElementById('blog_title').value,
+        category: document.getElementById('blog_category').value,
+        author: document.getElementById('blog_author').value,
+        date: document.getElementById('blog_date').value,
+        excerpt: document.getElementById('blog_excerpt').value,
+        image: pendingBlogImage
+      };
+      if (id) {
+        var idx = data.blogs.findIndex(function(b) { return b.id === id; });
+        if (idx >= 0) { if (!item.image) item.image = data.blogs[idx].image || null; data.blogs[idx] = item; }
+      } else {
+        data.blogs.push(item);
+      }
+      saveData(data);
+      resetBlogForm();
+      renderBlogsList();
+      alert('Blog post saved!');
+    }
+
+    function editBlog(id) {
+      var data = getData();
+      var b = (data.blogs || []).find(function(x) { return x.id === id; });
+      if (!b) return;
+      document.getElementById('blog_id').value = b.id;
+      document.getElementById('blog_title').value = b.title || '';
+      document.getElementById('blog_category').value = b.category || '';
+      document.getElementById('blog_author').value = b.author || '';
+      document.getElementById('blog_date').value = b.date || '';
+      document.getElementById('blog_excerpt').value = b.excerpt || '';
+      pendingBlogImage = null;
+      document.getElementById('blogImagePreview').innerHTML = b.image ? '<img src="' + b.image + '" class="file-preview">' : '';
+    }
+
+    function deleteBlog(id) {
+      if (!confirm('Delete this post?')) return;
+      var data = getData();
+      data.blogs = (data.blogs || []).filter(function(b) { return b.id !== id; });
+      saveData(data);
+      renderBlogsList();
+    }
+
+    function renderBlogsList() {
+      var blogs = getData().blogs || [];
+      var el = document.getElementById('blogsList');
+      if (!blogs.length) {
+        el.innerHTML = '<p class="text-gray-500 text-sm">No blog posts yet.</p>';
+        return;
+      }
+      el.innerHTML = blogs.map(function(b) {
+        return '<div class="flex items-center gap-4 p-3 rounded-xl bg-dark-900 border border-white/5">' +
+          '<div class="flex-1 min-w-0"><div class="font-medium text-white truncate">' + (b.title||'Untitled') + '</div>' +
+          '<div class="text-xs text-gray-400">' + (b.category||'') + ' · ' + (b.date||'') + ' · ' + (b.author||'') + '</div></div>' +
+          '<button onclick="editBlog(\'' + b.id + '\')" class="text-sm text-purple-400 hover:text-purple-300">Edit</button>' +
+          '<button onclick="deleteBlog(\'' + b.id + '\')" class="text-sm text-red-400 hover:text-red-300">Delete</button></div>';
+      }).join('');
+    }
+
+
+    var pendingBlogImage = null;
+    document.getElementById('blog_image').addEventListener('change', async function(e) {
+      pendingBlogImage = await fileToBase64(e.target.files[0]);
+      if (pendingBlogImage) document.getElementById('blogImagePreview').innerHTML = '<img src="' + pendingBlogImage + '" class="file-preview">';
+    });
+
+    // ========== GALLERY ==========
+    var pendingGalImage = null;
+
+    document.getElementById('gal_image').addEventListener('change', async function(e) {
+      pendingGalImage = await fileToBase64(e.target.files[0]);
+      if (pendingGalImage) document.getElementById('galPreview').innerHTML = '<img src="' + pendingGalImage + '" class="file-preview">';
+    });
+
+    function addGalleryImage() {
+      if (!pendingGalImage) { alert('Please select an image first.'); return; }
+      var data = getData();
+      data.gallery = data.gallery || [];
+      data.gallery.push(pendingGalImage);
+      saveData(data);
+      pendingGalImage = null;
+      document.getElementById('gal_image').value = '';
+      document.getElementById('galPreview').innerHTML = '';
+      renderGalleryList();
+      alert('Image added!');
+    }
+
+    function deleteGalleryImage(idx) {
+      if (!confirm('Remove this image?')) return;
+      var data = getData();
+      data.gallery.splice(idx, 1);
+      saveData(data);
+      renderGalleryList();
+      loadDesign();
+    }
+
+    function renderGalleryList() {
+      var gallery = getData().gallery || [];
+      var el = document.getElementById('galleryList');
+      if (!gallery.length) {
+        el.innerHTML = '<p class="text-gray-500 text-sm col-span-full">No images yet.</p>';
+        return;
+      }
+      el.innerHTML = gallery.map(function(img, i) {
+        return '<div class="relative group rounded-xl overflow-hidden aspect-square">' +
+          '<img src="' + img + '" class="w-full h-full object-cover">' +
+          '<button onclick="deleteGalleryImage(' + i + ')" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/90 text-white text-sm opacity-0 group-hover:opacity-100 transition">×</button></div>';
+      }).join('');
+    }
+
+
+    function loadDesign() {
+      var d=getData().settings||{};
+      document.getElementById('design_primary').value=d.primaryColor||'#7c3aed';
+      document.getElementById('design_accent').value=d.accentColor||'#fbbf24';
+      document.getElementById('design_background').value=d.backgroundColor||'#0a0a0f';
+      document.getElementById('design_card').value=d.cardColor||'#15151f';
+      document.getElementById('design_buttonText').value=d.buttonText||'Discover More';
+      document.getElementById('design_eventsButton').value=d.eventsButton||'Upcoming Events';
+    }
+    function saveDesign(){var d=getData();d.settings=d.settings||{};d.settings.primaryColor=document.getElementById('design_primary').value;d.settings.accentColor=document.getElementById('design_accent').value;d.settings.backgroundColor=document.getElementById('design_background').value;d.settings.cardColor=document.getElementById('design_card').value;d.settings.buttonText=document.getElementById('design_buttonText').value;d.settings.eventsButton=document.getElementById('design_eventsButton').value;saveData(d);alert('Design saved!');}
+    function resetAllContent(){if(!confirm('Remove ALL events, members, blog posts, gallery images, logo and about image?'))return;var d=getData();d.events=[];d.members=[];d.blogs=[];d.gallery=[];d.settings.logo=null;d.settings.aboutImage=null;saveData(d);loadAll();alert('All stored content and images were removed.');}
+
+    // ========== INIT ==========
+    function loadAll() {
+      loadSettings();
+      renderEventsList();
+      renderMembersList();
+      renderBlogsList();
+      renderGalleryList();
+    }
+  </script>
+</body>
+</html>
